@@ -1,11 +1,15 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { useRouter } from 'next/navigation'
+import axios from 'axios'
+import { useSession } from 'next-auth/react'
+import { useParams } from 'next/navigation'
+import Loading from '@/components/Loading'
 
 
 interface Checkup {
@@ -23,25 +27,40 @@ interface Checkup {
   created_at: string
 }
 
-const mockCheckup: Checkup = {
-  id: 'chk-123456',
-  doctor_name: 'Dr. Sarah Khan',
-  patient_name: 'Ali Raza',
-  patient_age: 45,
-  patient_gender: 'male',
-  patient_medical_history: 'Diabetes, Hypertension',
-  symptoms: 'Fever, Cough, Fatigue',
-  diagnosis: 'Viral Flu',
-  prescription: 'Paracetamol 500mg, 3 times a day for 5 days',
-  notes: 'Advised rest and hydration',
-  created_at: '2025-07-09T12:34:56.000Z',
-}
-
 const Checkup = () => {
+  const [checkup, setCheckup] = React.useState<Checkup | null>(null)
+  const { id } = useParams<{ id: string }>()
+
+  const {  status } = useSession()
   const router = useRouter()
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    }
+  }, [status, router])
+
+  useEffect(() => {
+    const fetchCheckup = async () => {
+      try {
+        const response = await axios.get(`/api/checkup/${id}`)
+        setCheckup(response.data)
+        console.log('Fetched checkup:', response.data)
+      } catch (error) {
+        console.error('Failed to fetch checkup:', error)
+        router.push('/dashboard')
+      }
+    }
+    fetchCheckup()
+  }, [id])
+
 
   const handlePrint = () => {
     window.print()
+  }
+
+  if (!checkup) {
+    return <Loading />;
   }
 
   return (
@@ -62,13 +81,13 @@ const Checkup = () => {
 
         <CardContent className="space-y-4 text-sm text-muted-foreground">
           <div>
-            <span className="font-medium text-black">Date:</span> {new Date(mockCheckup.created_at).toLocaleString()}
+            <span className="font-medium text-black">Date:</span> {new Date(checkup.created_at).toLocaleString()}
           </div>
           <Separator />
 
           <div className="space-y-1">
             <h3 className="font-semibold text-lg text-black">Doctor</h3>
-            <p>{mockCheckup.doctor_name}</p>
+            <p>{checkup.doctor_name}</p>
           </div>
 
           <Separator />
@@ -76,10 +95,10 @@ const Checkup = () => {
           <div className="space-y-1">
             <h3 className="font-semibold text-lg text-black">Patient Information</h3>
             <p>
-              <strong>Name:</strong> {mockCheckup.patient_name}<br />
-              <strong>Age:</strong> {mockCheckup.patient_age}<br />
+              <strong>Name:</strong> {checkup.patient_name}<br />
+              <strong>Age:</strong> {checkup.patient_age}<br />
               <strong>Gender:</strong>{' '}
-              <Badge variant="secondary">{mockCheckup.patient_gender}</Badge>
+              <Badge variant="secondary">{checkup.patient_gender}</Badge>
             </p>
           </div>
 
@@ -87,35 +106,35 @@ const Checkup = () => {
 
           <div className="space-y-1">
             <h3 className="font-semibold text-lg text-black">Medical History</h3>
-            <p>{mockCheckup.patient_medical_history}</p>
+            <p>{checkup.patient_medical_history}</p>
           </div>
 
           <Separator />
 
           <div className="space-y-1">
             <h3 className="font-semibold text-lg text-black">Symptoms</h3>
-            <p>{mockCheckup.symptoms}</p>
+            <p>{checkup.symptoms}</p>
           </div>
 
           <Separator />
 
           <div className="space-y-1">
             <h3 className="font-semibold text-lg text-black">Diagnosis</h3>
-            <p>{mockCheckup.diagnosis}</p>
+            <p>{checkup.diagnosis}</p>
           </div>
 
           <Separator />
 
           <div className="space-y-1">
             <h3 className="font-semibold text-lg text-black">Prescription</h3>
-            <p>{mockCheckup.prescription}</p>
+            <p>{checkup.prescription}</p>
           </div>
 
           <Separator />
 
           <div className="space-y-1">
             <h3 className="font-semibold text-lg text-black">Notes</h3>
-            <p>{mockCheckup.notes}</p>
+            <p>{checkup.notes}</p>
           </div>
         </CardContent>
       </Card>

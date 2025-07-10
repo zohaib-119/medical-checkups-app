@@ -1,12 +1,26 @@
-'use client';
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Stethoscope, ShieldCheck, Mic, User } from "lucide-react";
+import { useSession } from "next-auth/react";
+import Loading from "@/components/Loading";
 
 export default function Home() {
   const router = useRouter();
+
+  const { data: session, status } = useSession();
+
+  const user = session?.user as {
+    id: string;
+    name: string;
+    username: string;
+  };
+
+  if (status === "loading") {
+    return <Loading />;
+  }
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -17,13 +31,22 @@ export default function Home() {
             Medical Checkups Platform
           </h2>
           <p className="text-base md:text-lg text-gray-600">
-            A modern platform for doctors to quickly record consultations, diagnoses, and prescriptions — all in one streamlined step.
+            A modern platform for doctors to quickly record consultations,
+            diagnoses, and prescriptions — all in one streamlined step.
           </p>
-          <div className="pt-4">
-            <Button size="lg" onClick={() => router.push("/login")}>
-              Doctor Login
-            </Button>
-          </div>
+          {user ? (
+            <div>
+              <Button size="lg" onClick={() => router.push("/dashboard")}>
+                Dashboard
+              </Button>
+            </div>
+          ) : (
+            <div className="pt-4">
+              <Button size="lg" onClick={() => router.push("/login")}>
+                Doctor Login
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -35,23 +58,36 @@ export default function Home() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           <Card className="p-6 flex flex-col items-center text-center shadow-md hover:shadow-lg transition">
             <Stethoscope className="text-gray-700 w-8 h-8 mb-3" />
-            <h3 className="font-semibold text-lg mb-1">One-Step Consultation</h3>
-            <p className="text-sm text-gray-600">Record symptoms, diagnosis, and notes in a single, easy-to-use form.</p>
+            <h3 className="font-semibold text-lg mb-1">
+              One-Step Consultation
+            </h3>
+            <p className="text-sm text-gray-600">
+              Record symptoms, diagnosis, and notes in a single, easy-to-use
+              form.
+            </p>
           </Card>
           <Card className="p-6 flex flex-col items-center text-center shadow-md hover:shadow-lg transition">
             <Mic className="text-gray-700 w-8 h-8 mb-3" />
             <h3 className="font-semibold text-lg mb-1">Voice Recording</h3>
-            <p className="text-sm text-gray-600">Attach voice notes or full audio consultations securely via Cloudinary.</p>
+            <p className="text-sm text-gray-600">
+              Attach voice notes or full audio consultations securely via
+              Cloudinary.
+            </p>
           </Card>
           <Card className="p-6 flex flex-col items-center text-center shadow-md hover:shadow-lg transition">
             <User className="text-gray-700 w-8 h-8 mb-3" />
             <h3 className="font-semibold text-lg mb-1">No Patient Overhead</h3>
-            <p className="text-sm text-gray-600">Forget extra steps — just enter basic patient info when needed.</p>
+            <p className="text-sm text-gray-600">
+              Forget extra steps — just enter basic patient info when needed.
+            </p>
           </Card>
           <Card className="p-6 flex flex-col items-center text-center shadow-md hover:shadow-lg transition">
             <ShieldCheck className="text-gray-700 w-8 h-8 mb-3" />
             <h3 className="font-semibold text-lg mb-1">Secure & Private</h3>
-            <p className="text-sm text-gray-600">Only authorized doctors can access and submit data, ensuring confidentiality.</p>
+            <p className="text-sm text-gray-600">
+              Only authorized doctors can access and submit data, ensuring
+              confidentiality.
+            </p>
           </Card>
         </div>
       </section>

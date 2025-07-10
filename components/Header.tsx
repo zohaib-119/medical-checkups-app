@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import Link from 'next/link';
 
 const Header = () => {
   const { data: session } = useSession();
@@ -25,7 +26,9 @@ const Header = () => {
   return (
     <header className="w-full px-6 py-4 border-b bg-white flex justify-between items-center">
       <h1 className="text-xl font-semibold tracking-tight text-gray-800">
+        <Link href="/dashboard" className="flex items-center">
         MedCheckup
+        </Link>
       </h1>
 
       {session?.user ? (

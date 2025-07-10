@@ -1,16 +1,28 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { signIn } from 'next-auth/react';
+import { useSession } from "next-auth/react";
+import Loading from "@/components/Loading";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
+
+  const { status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace('/dashboard');
+    }
+  }, [status, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -28,13 +40,21 @@ export default function LoginPage() {
       });
   
       if (result?.ok) {
-        window.location.href = '/dashboard'
+        router.replace('/dashboard');
       } else {
         setError('Invalid Credentials, Try Again!')
         setForm({  username: '', password: '' })
       }
       setLoading(false)
     };
+
+    if(status === 'loading') { 
+      return <Loading/>;
+    }
+
+    if(status === 'authenticated') {
+      return null;
+    }
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
