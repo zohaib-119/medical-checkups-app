@@ -21,11 +21,11 @@ export default function RootLayout({
         <Providers>
         <main>
           <Header />
-          <div className="h-auto min-h-screen bg-gray-50 p-6">
+          <div className="min-h-[80vh] bg-gray-50">
             {children}
             <Toaster richColors />
           </div>
-          <Footer />
+          {/* <Footer /> */}
         </main>
         </Providers>
       </body>

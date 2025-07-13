@@ -47,6 +47,9 @@ const Header = () => {
             <DropdownMenuItem onClick={() => signOut()}>
               Logout
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/privacy-policy")}>
+              Privacy Policy
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (

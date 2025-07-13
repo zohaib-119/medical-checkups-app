@@ -17,6 +17,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Loading from "@/components/Loading";
+import { useHotkeys } from 'react-hotkeys-hook';
 
 interface Consultation {
   id: string;
@@ -38,6 +39,10 @@ const Dashboard = () => {
   const { status } = useSession();
 
   const router = useRouter();
+
+  useHotkeys('space', () => {
+    router.push("/checkup/create")
+  });
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -82,73 +87,76 @@ const Dashboard = () => {
           <CardTitle className="text-lg">Recent Checkups</CardTitle>
         </CardHeader>
         <CardContent>
-            {checkups.length === 0 ? (
+          {checkups.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               No checkups found.
             </div>
-            ) : (
-            <div className="overflow-x-auto">
+          ) : (
+            <div className="overflow-auto h-[40vh]">
               <Table>
-              <TableHeader>
-                <TableRow>
-                <TableHead className="w-16">#</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Patient Name</TableHead>
-                <TableHead>Age</TableHead>
-                <TableHead>Gender</TableHead>
-                <TableHead>Medical History</TableHead>
-                <TableHead>Symptoms</TableHead>
-                <TableHead>Diagnosis</TableHead>
-                <TableHead>Prescriptions</TableHead>
-                <TableHead>Notes</TableHead>
-                <TableHead className="text-right w-32">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {checkups.map((checkup, index) => (
-                <TableRow key={checkup.id} className="hover:bg-muted/50 transition">
-                  <TableCell className="font-medium">{index + 1}</TableCell>
-                  <TableCell>
-                  {new Date(checkup.created_at).toLocaleDateString(undefined, {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                  </TableCell>
-                  <TableCell>{checkup.patient_name}</TableCell>
-                  <TableCell>{checkup.patient_age}</TableCell>
-                  <TableCell>{checkup.patient_gender}</TableCell>
-                  <TableCell className="max-w-xs truncate" title={checkup.patient_medical_history}>
-                  {checkup.patient_medical_history}
-                  </TableCell>
-                  <TableCell className="max-w-xs truncate" title={checkup.symptoms}>
-                  {checkup.symptoms}
-                  </TableCell>
-                  <TableCell className="max-w-xs truncate" title={checkup.diagnosis}>
-                  {checkup.diagnosis}
-                  </TableCell>
-                  <TableCell className="max-w-xs truncate" title={checkup.prescription || ""}>
-                  {checkup.prescription || <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell className="max-w-xs truncate" title={checkup.notes || ""}>
-                  {checkup.notes || <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell className="text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => router.push(`/checkup/${checkup.id}`)}
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    View
-                  </Button>
-                  </TableCell>
-                </TableRow>
-                ))}
-              </TableBody>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16">#</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Patient Name</TableHead>
+                    <TableHead>Age</TableHead>
+                    <TableHead>Gender</TableHead>
+                    <TableHead>Medical History</TableHead>
+                    <TableHead>Symptoms</TableHead>
+                    <TableHead>Diagnosis</TableHead>
+                    <TableHead>Prescriptions</TableHead>
+                    <TableHead>Notes</TableHead>
+                    <TableHead className="text-right w-32">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {checkups.map((checkup, index) => (
+                    <TableRow key={checkup.id} className="hover:bg-muted/50 transition">
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell>
+                        {new Date(checkup.created_at).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </TableCell>
+                      <TableCell>{checkup.patient_name}</TableCell>
+                      <TableCell>{checkup.patient_age}</TableCell>
+                      <TableCell>{checkup.patient_gender}</TableCell>
+                      <TableCell className="max-w-xs truncate" title={checkup.patient_medical_history}>
+                        {checkup.patient_medical_history}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate" title={checkup.symptoms}>
+                        {checkup.symptoms}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate" title={checkup.diagnosis}>
+                        {checkup.diagnosis}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate" title={checkup.prescription || ""}>
+                        {checkup.prescription || <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate" title={checkup.notes || ""}>
+                        {checkup.notes || <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/checkup/${checkup.id}`)}
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
               </Table>
             </div>
-            )}
+          )}
+          <div className="flex w-full items-center justify-center tracking-wide text-sm text-muted-foreground select-none">
+            Press 'Spacebar' to Create Checkup
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -25,7 +25,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* Hero Section */}
-      <section className="min-h-[60vh] flex flex-col justify-center items-center text-center px-4 py-12 bg-gray-50">
+      <section className="min-h-[36vh] flex flex-col justify-center items-center text-center px-4 py-12 bg-gray-50">
         <div className="max-w-2xl space-y-4">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-800">
             Medical Checkups Platform
