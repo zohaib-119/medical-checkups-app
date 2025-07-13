@@ -41,7 +41,7 @@ const Dashboard = () => {
   const router = useRouter();
 
   useHotkeys('space', () => {
-    router.push("/checkup/create")
+    router.push("/checkup/create-checkup")
   });
 
   useEffect(() => {
@@ -75,7 +75,7 @@ const Dashboard = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Checkups</h1>
-        <Button onClick={() => router.push("/checkup/create")}>
+        <Button onClick={() => router.push("/checkup/create-checkup")}>
           <Plus className="w-4 h-4 mr-2" />
           Create Checkup
         </Button>
