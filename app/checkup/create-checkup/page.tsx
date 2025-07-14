@@ -113,58 +113,103 @@ const CheckupFormRHF = () => {
     },
   })
 
+  // The onSubmit function
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    // Manual validation
     if (
       values.symptoms === "" ||
       values.diagnosis === "" ||
-      values.prescription === "" || values.notes === ""
+      values.prescription === "" ||
+      values.notes === ""
     ) {
       toast.error(
-        "Please fill in all required fields: Symptoms, Diagnosis, Prescription and Notes."
+        "Please fill in all required fields: Symptoms, Diagnosis, Prescription, and Notes."
       );
       return;
     }
 
-    let file = audioFile;
-
+    // Determine the final audio file (Blob)
+    let finalAudioFile: Blob | null = null;
     if (recording || paused) {
-      file = await stopRecording();
+      finalAudioFile = await stopRecording();
+    } else if (audioFile) {
+      finalAudioFile = audioFile as Blob;
     }
 
-    console.log("Form Data:", form);
-    console.log("Audio File:", file);
 
-    setLoading(true);
+    // Use toast.promise() to manage the asynchronous operations and UI feedback
+    toast.promise(
+      (async () => {
+        // This async function represents the entire submission process
 
-    try {
-      const formData = new FormData();
-      formData.append("files", file as Blob, "checkup_audio.webm");
-      const response = await axios.post("/api/upload", formData);
+        // --- 1. Audio Upload to Cloudinary (if file exists) ---
+        let audioUrl: string | undefined;
+        let audioPublicId: string | undefined;
 
-      if (response.status < 200 || response.status >= 300) {
-        throw new Error("Failed to upload images");
+        if (finalAudioFile) {
+          toast.loading("Uploading audio...", { id: "audio-upload-progress" });
+
+          const formData = new FormData();
+          formData.append("files", finalAudioFile, "checkup_audio.webm");
+
+          try {
+            const response = await axios.post("/api/upload", formData);
+
+            if (response.status < 200 || response.status >= 300) {
+              throw new Error("Failed to upload audio file.");
+            }
+            const { result } = response.data;
+
+            audioUrl = result[0].url;
+            audioPublicId = result[0].public_id;
+
+            toast.success("Audio uploaded!", { id: "audio-upload-progress" });
+          } catch (error: any) {
+            toast.error(`Audio upload failed: ${error.message || 'Unknown error'}`, { id: "audio-upload-progress" });
+            throw error;
+          }
+        }
+
+
+        // --- 2. Database Insert ---
+        toast.loading("Saving checkup data...", { id: "db-save-progress" });
+
+        const checkupData = {
+          ...values,
+          consultation_audio_url: audioUrl || null,
+          audio_public_id: audioPublicId || null,
+        };
+
+        try {
+          const checkupResponse = await axios.post("/api/checkup", checkupData);
+
+          if (checkupResponse.status < 200 || checkupResponse.status >= 300) {
+            throw new Error("Failed to submit checkup data to database.");
+          }
+          toast.success("Checkup data saved!", { id: "db-save-progress" });
+          return checkupResponse.data; // This data will be passed to the success callback
+        } catch (error: any) {
+          toast.error(`Database save failed: ${error.message || 'Unknown error'}`, { id: "db-save-progress" });
+          throw error;
+        }
+
+      })(), // Immediately invoke the async function
+      {
+        loading: 'Submitting checkup...', // Main loading message for the overall process
+        success: (data) => {
+          // Form clearing should still happen here, as it's specific to THIS form's submission success
+          form.reset();
+          return "Checkup submitted successfully!";
+        },
+        error: (err) => {
+          console.error("Error submitting checkup:", err);
+          return `Submission failed: ${err.message || 'Please try again.'}`;
+        },
       }
-      const { result } = response.data;
+    );
 
-      const audioUrl = result[0].url;
-      const audioPublicId = result[0].public_id;
-
-      const checkupData = {
-        ...values,
-        consultation_audio_url: audioUrl,
-        audio_public_id: audioPublicId,
-      };
-      const checkupResponse = await axios.post("/api/checkup", checkupData);
-      if (checkupResponse.status < 200 || checkupResponse.status >= 300) {
-        throw new Error("Failed to submit checkup data");
-      }
-      toast.success("Checkup submitted successfully!");
-      router.replace("/dashboard");
-    } catch (error) {
-      console.error("Error submitting checkup:", error);
-    } finally {
-      setLoading(false);
-    }
+    // --- IMPORTANT CHANGE: Navigate immediately AFTER the toast.promise is initiated ---
+    router.push("/dashboard");
   }
 
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
@@ -316,8 +361,8 @@ const CheckupFormRHF = () => {
       };
 
   const fields = [
-    { placeholder: "Select or type", label: "Patient Gender", name: "patient_gender", select: true },
     { placeholder: "Ahmad (optional)", label: "Patient Name", name: "patient_name" },
+    { placeholder: "Select or type", label: "Patient Gender", name: "patient_gender", select: true },
     { placeholder: "25", label: "Patient Age", name: "patient_age" },
     { placeholder: "Allergies, chronic conditions, past surgeries...", label: "Medical History", name: "patient_medical_history", textarea: true },
     { placeholder: "Fever, cough, headache...", label: "Symptoms", name: "symptoms", textarea: true },
