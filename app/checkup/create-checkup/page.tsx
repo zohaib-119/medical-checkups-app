@@ -33,7 +33,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-
+import { useUpload } from "@/components/providers/UploadContext";
 
 interface CheckupFormData {
   patient_name: string;
@@ -113,17 +113,20 @@ const CheckupFormRHF = () => {
     },
   })
 
+  const { setIsUploading } = useUpload();
+
   // The onSubmit function
   async function onSubmit(values: z.infer<typeof formSchema>) {
     // Manual validation
     if (
-      values.symptoms === "" ||
-      values.diagnosis === "" ||
-      values.prescription === "" ||
-      values.notes === ""
+      values.patient_medical_history.trim() === "" ||
+      values.symptoms.trim() === "" ||
+      values.diagnosis.trim() === "" ||
+      values.prescription.trim() === "" ||
+      values.notes.trim() === ""
     ) {
       toast.error(
-        "Please fill in all required fields: Symptoms, Diagnosis, Prescription, and Notes."
+        "Please fill in all required fields: Medical History, Symptoms, Diagnosis, Prescription, and Notes."
       );
       return;
     }
@@ -148,6 +151,7 @@ const CheckupFormRHF = () => {
 
         if (finalAudioFile) {
           toast.loading("Uploading audio...", { id: "audio-upload-progress" });
+          setIsUploading(true); // Set uploading state to true
 
           const formData = new FormData();
           formData.append("files", finalAudioFile, "checkup_audio.webm");
@@ -187,6 +191,7 @@ const CheckupFormRHF = () => {
             throw new Error("Failed to submit checkup data to database.");
           }
           toast.success("Checkup data saved!", { id: "db-save-progress" });
+          setIsUploading(false); // Set uploading state to false after saving
           return checkupResponse.data; // This data will be passed to the success callback
         } catch (error: any) {
           toast.error(`Database save failed: ${error.message || 'Unknown error'}`, { id: "db-save-progress" });
@@ -244,19 +249,20 @@ const CheckupFormRHF = () => {
   }, [status, router]);
 
   useEffect(() => {
-    if (status === "loading" || status === "unauthenticated") {
-      return;
+    console.log("Checkup Form mounted, status:", status);
+    if (status === "authenticated") {
+      console.log("Starting recording...");
+      startRecording();
     }
-    startRecording();
-    return () => {
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current);
-        recordingIntervalRef.current = null;
-      }
-      if (mediaRecorder) {
-        mediaRecorder.stream.getTracks().forEach((track) => track.stop());
-      }
-    };
+    // return () => {
+    //   if (recordingIntervalRef.current) {
+    //     clearInterval(recordingIntervalRef.current);
+    //     recordingIntervalRef.current = null;
+    //   }
+    //   if (mediaRecorder) {
+    //     mediaRecorder.stream.getTracks().forEach((track) => track.stop());
+    //   }
+    // };
   }, [status]);
 
   const startRecording = async () => {
@@ -339,6 +345,9 @@ const CheckupFormRHF = () => {
         };
 
         mediaRecorder.stop();
+
+        mediaRecorder.stream.getTracks().forEach((track) => track.stop());
+        setMediaRecorder(null);
       } else {
         resolve(null);
       }

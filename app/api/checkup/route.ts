@@ -39,9 +39,6 @@ export async function POST(req: Request) {
         }: CheckupRequestBody = await req.json();
 
         if (
-            !patient_name ||
-            !patient_age ||
-            !patient_gender ||
             !patient_medical_history ||
             !symptoms ||
             !diagnosis ||
@@ -104,7 +101,9 @@ export async function GET(req: Request) {
         const { data: checkups, error } = await client
             .from('med_consultations')
             .select('id, patient_name, patient_age, patient_gender, patient_medical_history, symptoms, diagnosis, prescription, notes, doctor_id, created_at')
-            .eq('doctor_id', user.id);
+            .eq('doctor_id', user.id)
+            .order('created_at', { ascending: false }) // fetch in inverse chronological order (most recent first)
+            .limit(10); // limit to 20 checkups
 
         if (error) {
             console.error(error);

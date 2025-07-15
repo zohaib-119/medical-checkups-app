@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Providers from "@/components/providers/Providers";
 import { Toaster } from "@/components/ui/sonner";
+import { UploadProvider } from "@/components/providers/UploadContext";
 
 export const metadata: Metadata = {
   title: "MedCheckup",
@@ -19,6 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Providers>
+          <UploadProvider>
         <main>
           <Header />
           <div className="min-h-[80vh] bg-gray-50">
@@ -27,6 +29,7 @@ export default function RootLayout({
           </div>
           {/* <Footer /> */}
         </main>
+        </UploadProvider>
         </Providers>
       </body>
     </html>
