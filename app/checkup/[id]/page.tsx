@@ -11,19 +11,20 @@ import { useSession } from 'next-auth/react'
 import { useParams } from 'next/navigation'
 import Loading from '@/components/Loading'
 
-
 interface Checkup {
   id: string,
   doctor_name: string,
   patient_name: string | null,
   patient_age: number | null,
   patient_gender: 'male' | 'female' | 'other' | null,
-  patient_medical_history: string | null,
+  temperature?: string | null,
+  blood_pressure?: string | null,
+  blood_sugar?: string | null,
   symptoms: string
   diagnosis: string
-  prescription: string
+  medications: string | null,
+  lab_tests: string | null,
   notes: string | null
-  
   created_at: string
 }
 
@@ -31,7 +32,7 @@ const Checkup = () => {
   const [checkup, setCheckup] = React.useState<Checkup | null>(null)
   const { id } = useParams<{ id: string }>()
 
-  const {  status } = useSession()
+  const { status } = useSession()
   const router = useRouter()
 
   useEffect(() => {
@@ -53,7 +54,6 @@ const Checkup = () => {
     }
     fetchCheckup()
   }, [id])
-
 
   const handlePrint = () => {
     window.print()
@@ -106,7 +106,11 @@ const Checkup = () => {
 
           <div className="space-y-1">
             <h3 className="font-semibold text-lg text-black">Medical History</h3>
-            <p>{checkup.patient_medical_history}</p>
+            <p>
+              {checkup.temperature && <><strong>Temperature:</strong> {checkup.temperature}°C<br /></>}
+              {checkup.blood_pressure && <><strong>Blood Pressure:</strong> {checkup.blood_pressure}<br /></>}
+              {checkup.blood_sugar && <><strong>Blood Sugar:</strong> {checkup.blood_sugar} mg/dL</>}
+            </p>
           </div>
 
           <Separator />
@@ -127,7 +131,10 @@ const Checkup = () => {
 
           <div className="space-y-1">
             <h3 className="font-semibold text-lg text-black">Prescription</h3>
-            <p>{checkup.prescription}</p>
+            <p>
+              {checkup.medications && <><strong>Medications:</strong> {checkup.medications}<br /></>}
+              {checkup.lab_tests && <><strong>Lab Tests:</strong> {checkup.lab_tests}</>}
+            </p>
           </div>
 
           <Separator />

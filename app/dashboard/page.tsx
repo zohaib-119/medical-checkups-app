@@ -25,10 +25,13 @@ interface Consultation {
   patient_name: string;
   patient_age: number;
   patient_gender: string;
-  patient_medical_history: string;
+  temperature?: number;
+  blood_pressure?: string;  
+  blood_sugar?: string;
   symptoms: string;
   diagnosis: string;
-  prescription?: string;
+  medications?: string;
+  lab_tests?: string;
   notes?: string;
   created_at: string;
 }
@@ -101,10 +104,13 @@ const Dashboard = () => {
                     <TableHead>Patient Name</TableHead>
                     <TableHead>Age</TableHead>
                     <TableHead>Gender</TableHead>
-                    <TableHead>Medical History</TableHead>
+                    <TableHead>Temperature</TableHead>
+                    <TableHead>Blood Pressure</TableHead>
+                    <TableHead>Blood Sugar</TableHead>
                     <TableHead>Symptoms</TableHead>
                     <TableHead>Diagnosis</TableHead>
-                    <TableHead>Prescriptions</TableHead>
+                    <TableHead>Medications</TableHead>
+                    <TableHead>Lab Tests</TableHead>
                     <TableHead>Notes</TableHead>
                     <TableHead className="text-right w-32">Actions</TableHead>
                   </TableRow>
@@ -123,8 +129,14 @@ const Dashboard = () => {
                       <TableCell>{checkup.patient_name}</TableCell>
                       <TableCell>{checkup.patient_age}</TableCell>
                       <TableCell>{checkup.patient_gender}</TableCell>
-                      <TableCell className="max-w-xs truncate" title={checkup.patient_medical_history}>
-                        {checkup.patient_medical_history}
+                      <TableCell className="max-w-xs truncate" title={checkup.temperature?.toString()}>
+                        {checkup.temperature ? `${checkup.temperature} °F` : <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate" title={checkup.blood_pressure || ""}>
+                        {checkup.blood_pressure || <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate" title={checkup.blood_sugar || ""}>
+                        {checkup.blood_sugar || <span className="text-muted-foreground">—</span>}
                       </TableCell>
                       <TableCell className="max-w-xs truncate" title={checkup.symptoms}>
                         {checkup.symptoms}
@@ -132,8 +144,11 @@ const Dashboard = () => {
                       <TableCell className="max-w-xs truncate" title={checkup.diagnosis}>
                         {checkup.diagnosis}
                       </TableCell>
-                      <TableCell className="max-w-xs truncate" title={checkup.prescription || ""}>
-                        {checkup.prescription || <span className="text-muted-foreground">—</span>}
+                      <TableCell className="max-w-xs truncate" title={checkup.medications || ""}>
+                        {checkup.medications || <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate" title={checkup.lab_tests || ""}>
+                        {checkup.lab_tests || <span className="text-muted-foreground">—</span>}
                       </TableCell>
                       <TableCell className="max-w-xs truncate" title={checkup.notes || ""}>
                         {checkup.notes || <span className="text-muted-foreground">—</span>}

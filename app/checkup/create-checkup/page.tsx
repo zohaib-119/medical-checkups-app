@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FocusTrap } from 'focus-trap-react';
+import { FocusTrap } from "focus-trap-react";
 import {
   Select,
   SelectContent,
@@ -14,16 +14,24 @@ import {
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, Pause, Play } from "lucide-react";
+import {
+  ChevronLeft,
+  Pause,
+  Play,
+  Loader2,
+  Thermometer,
+  HeartPulse,
+  Droplet,
+} from "lucide-react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Loading from "@/components/Loading";
 import { toast } from "sonner";
-import { useHotkeys } from 'react-hotkeys-hook';
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useHotkeys } from "react-hotkeys-hook";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
@@ -32,20 +40,23 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/components/ui/form";
 import { useUpload } from "@/components/providers/UploadContext";
+import { text } from "stream/consumers";
 
 interface CheckupFormData {
   patient_name: string;
   patient_age?: number;
   patient_gender?: "male" | "female" | "other";
-  patient_medical_history: string;
+  temperature?: string;
+  blood_pressure?: string;
+  blood_sugar?: string;
   symptoms: string;
   diagnosis: string;
-  prescription: string;
+  medications: string;
+  lab_tests?: string;
   notes: string;
 }
-
 
 // const initialForm: CheckupFormData = {
 //   patient_name: "",
@@ -68,20 +79,30 @@ const formSchema = z.object({
     .trim()
     .optional()
     .refine(
-      (val) => val === undefined || val === "" || (!isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 120),
+      (val) =>
+        val === undefined ||
+        val === "" ||
+        (!isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 120),
       {
         message: "Age must be a number between 0 and 120.",
       }
     ),
 
   // Corrected z.enum for patient_gender
-  patient_gender: z.enum(["male", "female", "other"], {
-    error: "Please select a gender.", // Use 'error' directly for simple message
-  })
+  patient_gender: z
+    .enum(["male", "female", "other"], {
+      error: "Please select a gender.", // Use 'error' directly for simple message
+    })
     .optional(),
 
-  // patient_medical_history is required
-  patient_medical_history: z.string().min(1, { message: "Medical history is required." }),
+  // temperature is optional
+  temperature: z.string().trim().optional(),
+
+  // blood_pressure is optional
+  blood_pressure: z.string().trim().optional(),
+
+  // blood_sugar is optional
+  blood_sugar: z.string().trim().optional(),
 
   // symptoms is required
   symptoms: z.string().min(1, { message: "Symptoms are required." }),
@@ -89,15 +110,17 @@ const formSchema = z.object({
   // diagnosis is required
   diagnosis: z.string().min(1, { message: "Diagnosis is required." }),
 
-  // prescription is required
-  prescription: z.string().min(1, { message: "Prescription is required." }),
+  // medications is required
+  medications: z.string().min(1, { message: "Medications are required." }),
+
+  // lab_tests is optional
+  lab_tests: z.string().trim().optional(),
 
   // notes is required
   notes: z.string().min(1, { message: "Notes are required." }),
 });
 
 const CheckupFormRHF = () => {
-
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -105,13 +128,16 @@ const CheckupFormRHF = () => {
       patient_name: "",
       patient_age: "",
       patient_gender: undefined,
-      patient_medical_history: "",
       symptoms: "",
       diagnosis: "",
-      prescription: "",
-      notes: ""
+      notes: "",
+      temperature: "",
+      blood_pressure: "",
+      blood_sugar: "",
+      medications: "",
+      lab_tests: "",
     },
-  })
+  });
 
   const { setIsUploading } = useUpload();
 
@@ -119,10 +145,9 @@ const CheckupFormRHF = () => {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     // Manual validation
     if (
-      values.patient_medical_history.trim() === "" ||
       values.symptoms.trim() === "" ||
       values.diagnosis.trim() === "" ||
-      values.prescription.trim() === "" ||
+      values.medications.trim() === "" ||
       values.notes.trim() === ""
     ) {
       toast.error(
@@ -138,7 +163,6 @@ const CheckupFormRHF = () => {
     } else if (audioFile) {
       finalAudioFile = audioFile as Blob;
     }
-
 
     // Use toast.promise() to manage the asynchronous operations and UI feedback
     toast.promise(
@@ -169,11 +193,13 @@ const CheckupFormRHF = () => {
 
             toast.success("Audio uploaded!", { id: "audio-upload-progress" });
           } catch (error: any) {
-            toast.error(`Audio upload failed: ${error.message || 'Unknown error'}`, { id: "audio-upload-progress" });
+            toast.error(
+              `Audio upload failed: ${error.message || "Unknown error"}`,
+              { id: "audio-upload-progress" }
+            );
             throw error;
           }
         }
-
 
         // --- 2. Database Insert ---
         toast.loading("Saving checkup data...", { id: "db-save-progress" });
@@ -194,13 +220,15 @@ const CheckupFormRHF = () => {
           setIsUploading(false); // Set uploading state to false after saving
           return checkupResponse.data; // This data will be passed to the success callback
         } catch (error: any) {
-          toast.error(`Database save failed: ${error.message || 'Unknown error'}`, { id: "db-save-progress" });
+          toast.error(
+            `Database save failed: ${error.message || "Unknown error"}`,
+            { id: "db-save-progress" }
+          );
           throw error;
         }
-
       })(), // Immediately invoke the async function
       {
-        loading: 'Submitting checkup...', // Main loading message for the overall process
+        loading: "Submitting checkup...", // Main loading message for the overall process
         success: (data) => {
           // Form clearing should still happen here, as it's specific to THIS form's submission success
           form.reset();
@@ -208,7 +236,7 @@ const CheckupFormRHF = () => {
         },
         error: (err) => {
           console.error("Error submitting checkup:", err);
-          return `Submission failed: ${err.message || 'Please try again.'}`;
+          return `Submission failed: ${err.message || "Please try again."}`;
         },
       }
     );
@@ -234,13 +262,21 @@ const CheckupFormRHF = () => {
   const { status } = useSession();
   const router = useRouter();
 
-  useHotkeys('esc', () => {
-    router.push("/dashboard")
-  }, { enableOnFormTags: ['INPUT', 'TEXTAREA'] });
+  useHotkeys(
+    "esc",
+    () => {
+      router.push("/dashboard");
+    },
+    { enableOnFormTags: ["INPUT", "TEXTAREA"] }
+  );
 
-  useHotkeys('ctrl+enter', () => {
-    form.handleSubmit(onSubmit)()
-  }, { enableOnFormTags: ['INPUT', 'TEXTAREA'], preventDefault: true });
+  useHotkeys(
+    "ctrl+enter",
+    () => {
+      form.handleSubmit(onSubmit)();
+    },
+    { enableOnFormTags: ["INPUT", "TEXTAREA"], preventDefault: true }
+  );
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -362,23 +398,29 @@ const CheckupFormRHF = () => {
 
   const handleEnter =
     (index: number) =>
-      (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          autoFocusRef.current[index + 1]?.focus();
-        }
-      };
+    (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        autoFocusRef.current[index + 1]?.focus();
+      }
+    };
 
-  const fields = [
-    { placeholder: "Ahmad (optional)", label: "Patient Name", name: "patient_name" },
-    { placeholder: "Select or type", label: "Patient Gender", name: "patient_gender", select: true },
-    { placeholder: "25", label: "Patient Age", name: "patient_age" },
-    { placeholder: "Allergies, chronic conditions, past surgeries...", label: "Medical History", name: "patient_medical_history", textarea: true },
-    { placeholder: "Fever, cough, headache...", label: "Symptoms", name: "symptoms", textarea: true },
-    { placeholder: "Common cold, flu, bronchitis...", label: "Diagnosis", name: "diagnosis", textarea: true },
-    { placeholder: "Paracetamol 500mg, twice daily...", label: "Prescription", name: "prescription", textarea: true },
-    { placeholder: "Patient is responding well to treatment...", label: "Notes", name: "notes", textarea: true },
-  ];
+  // const fields = [
+  //   { placeholder: "Ahmad (optional)", label: "Patient Name", name: "patient_name" },
+  //   { placeholder: "Select or type", label: "Patient Gender", name: "patient_gender", select: true },
+  //   { placeholder: "25", label: "Patient Age", name: "patient_age" },
+  //   // { placeholder: "Allergies, chronic conditions, past surgeries...", label: "Medical History", name: "patient_medical_history", textarea: true },
+  //   { placeholder: "Temperature", label: "Temperature", name: "temperature" },
+  //   { placeholder: "Blood Pressure", label: "Blood Pressure", name: "blood_pressure" },
+  //   { placeholder: "Blood Sugar", label: "Blood Sugar", name: "blood_sugar" },
+  //   { placeholder: "Fever, cough, headache...", label: "Symptoms", name: "symptoms", textarea: true },
+  //   { placeholder: "Common cold, flu, bronchitis...", label: "Diagnosis", name: "diagnosis", textarea: true },
+  //   // { placeholder: "Paracetamol 500mg, twice daily...", label: "Prescription", name: "prescription", textarea: true },
+  //   { placeholder: "Paracetamol 500mg, once daily...", label: "Medication", name: "medications", textarea: true },
+  //   { placeholder: "CBC, BMP, LFT...", label: "Lab Tests", name: "lab_tests", textarea: true },
+
+  //   { placeholder: "Patient is responding well to treatment...", label: "Notes", name: "notes", textarea: true },
+  // ];
 
   if (status === "loading") {
     return <Loading />;
@@ -388,10 +430,97 @@ const CheckupFormRHF = () => {
     return null;
   }
 
+  const fields = [
+    // Patient Information Section
+    {
+      placeholder: "Ahmad (optional)",
+      label: "Patient Name",
+      name: "patient_name",
+      colSpan: 1,
+    },
+    {
+      placeholder: "Select or type",
+      label: "Patient Gender",
+      name: "patient_gender",
+      select: true,
+      colSpan: 1,
+    },
+    {
+      placeholder: "25",
+      label: "Patient Age",
+      name: "patient_age",
+      colSpan: 1,
+    },
+
+    // Medical History Section - Vital Signs
+    {
+      placeholder: "36.5°C",
+      label: "Temperature",
+      name: "temperature",
+      colSpan: 1,
+      icon: <Thermometer className="h-4 w-4 mr-2 opacity-50" />,
+    },
+    {
+      placeholder: "120/80 mmHg",
+      label: "Blood Pressure",
+      name: "blood_pressure",
+      colSpan: 1,
+      icon: <HeartPulse className="h-4 w-4 mr-2 opacity-50" />,
+    },
+    {
+      placeholder: "90 mg/dL",
+      label: "Blood Sugar",
+      name: "blood_sugar",
+      colSpan: 1,
+      icon: <Droplet className="h-4 w-4 mr-2 opacity-50" />,
+    },
+
+    // Symptoms and Diagnosis
+    {
+      placeholder: "Fever, cough, headache...",
+      label: "Symptoms",
+      name: "symptoms",
+      textarea: true,
+      colSpan: 3,
+    },
+    {
+      placeholder: "Common cold, flu, bronchitis...",
+      label: "Diagnosis",
+      name: "diagnosis",
+      textarea: true,
+      colSpan: 3,
+    },
+
+    // Treatment Section
+    {
+      placeholder: "Paracetamol 500mg, once daily...",
+      label: "Medication",
+      name: "medications",
+      textarea: true,
+      colSpan: 2,
+    },
+    {
+      placeholder: "CBC, BMP, LFT...",
+      label: "Lab Tests",
+      name: "lab_tests",
+      textarea: true,
+      colSpan: 1,
+    },
+
+    // Notes
+    {
+      placeholder: "Patient is responding well to treatment...",
+      label: "Notes",
+      name: "notes",
+      textarea: true,
+      colSpan: 3,
+    },
+  ];
+
   return (
-    <div className="p-6 space-y-6">
-      <Card className="max-w-5xl mx-auto shadow-lg border border-gray-200">
-        <CardHeader>
+    <div className="p-6">
+      <Card className="max-w-6xl mx-auto shadow-lg border border-gray-200">
+        <CardHeader className="pb-4">
           <div className="flex w-full items-center justify-between">
             <Button
               type="button"
@@ -400,191 +529,269 @@ const CheckupFormRHF = () => {
               onClick={() => router.push("/dashboard")}
               disabled={loading}
             >
-              <ChevronLeft />
-              <span className="text-xs tracking-wide text-muted-foreground">
+              <ChevronLeft className="h-4 w-4" />
+              <span className="ml-2 text-xs tracking-wide text-muted-foreground">
                 Esc
               </span>
             </Button>
             <div className="place-self-center">
-              <CardTitle className="text-2xl font-semibold text-center">
+              <CardTitle className="text-3xl font-bold text-center">
                 Patient Checkup Form
               </CardTitle>
             </div>
-            <div>
-
-            </div>
+            <div className="w-24"> {/* Spacer for balance */} </div>
           </div>
         </CardHeader>
-        <CardContent>
+
+        <CardContent className="space-y-8">
           {/* Audio Controls */}
-          <div className="flex items-center gap-3 mb-6 justify-between">
-            <span className="text-xs tracking-wide text-muted-foreground">
-              Press 'Tab' to navigate
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <span className="text-sm text-muted-foreground">
+              Press 'Tab' to navigate fields
             </span>
-            <div className="flex items-center gap-2">
-              {recording && (
-                <span className="flex items-center gap-1 text-red-600 font-medium select-none">
-                  <span className="bg-red-500 w-3 h-3 rounded-full animate-pulse" />
-                  Recording Audio
-                  <span className="ml-2 text-xs text-gray-500">
+            <div className="flex items-center gap-4">
+              {recording ? (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 text-red-600 font-medium">
+                    <span className="bg-red-500 w-3 h-3 rounded-full animate-pulse" />
+                    Recording
+                  </div>
+                  <span className="text-sm text-gray-500">
                     {`${Math.floor(recordingTime / 60)
                       .toString()
                       .padStart(2, "0")}:${(recordingTime % 60)
-                        .toString()
-                        .padStart(2, "0")}`}
+                      .toString()
+                      .padStart(2, "0")}`}
                   </span>
-                </span>
-              )}
-              {!recording && (
-                <span className="text-gray-500 text-sm">Audio not recording</span>
-              )}
-            </div>
-
-            <div className="hidden gap-2">
-              {recording && !paused && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  aria-label="Pause Recording"
-                  onClick={pauseRecording}
-                  disabled={loading}
-                >
-                  <Pause />
-                </Button>
-              )}
-              {recording && paused && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  aria-label="Resume Recording"
-                  onClick={resumeRecording}
-                  disabled={loading}
-                >
-                  <Play />
-                </Button>
+                </div>
+              ) : (
+                <span className="text-sm text-gray-500">Ready to record</span>
               )}
             </div>
           </div>
 
           <Form {...form}>
             <FocusTrap active={true}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 grid grid-cols-3 gap-2">
-                {fields.map((_field, index) => (
-                  <div key={_field.name} className="space-y-2">
-                    {_field.textarea ? (
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-8"
+              >
+                {/* Patient Information Section */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
+                    Patient Information
+                  </h3>
+                  <div className="grid grid-cols-3 gap-6">
+                    {fields.slice(0, 3).map((_field) => (
                       <FormField
+                        key={_field.name}
                         control={form.control}
                         name={_field.name as keyof CheckupFormData}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>{_field.label}</FormLabel>
-                            <FormControl>
-                              {/* <Input placeholder="shadcn" {...field} /> */}
-                              <Textarea
-                                {...field}
-                                // onKeyDown={handleEnter(index)}
-                                // ref={(el) => {
-                                //   if (el) autoFocusRef.current[index] = el;
-                                // }}
-                                placeholder={`${_field.placeholder}`}
-                                className="resize-none focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0"
-                                rows={3}
-                                disabled={loading}
+                            {_field.select ? (
+                              <FormField
+                                control={form.control}
+                                name={_field.name as keyof CheckupFormData}
+                                render={({ field }) => (
+                                    <Select
+                                      disabled={loading}
+                                      onValueChange={field.onChange}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger className="w-full focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0">
+                                          <SelectValue placeholder="Select Gender" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="male">
+                                          Male
+                                        </SelectItem>
+                                        <SelectItem value="female">
+                                          Female
+                                        </SelectItem>
+                                        <SelectItem value="other">
+                                          Other
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                )}
                               />
-                            </FormControl>
-                            <FormDescription>
-                            </FormDescription>
-                            {/* <FormMessage /> */}
-                          </FormItem>
-                        )}
-                      />
-                    ) : _field.select ? (
-                      <FormField
-                        control={form.control}
-                        name={_field.name as keyof CheckupFormData}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{_field.label}</FormLabel>
-                            <Select
-                              disabled={loading}
-                              onValueChange={field.onChange}
-                            >
+                            ) : (
                               <FormControl>
-                                <SelectTrigger className="w-full focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0">
-                                  <SelectValue placeholder="Select Gender" />
-                                </SelectTrigger>
+                                <Input
+                                  placeholder={_field.placeholder}
+                                  className="h-12"
+                                  disabled={loading}
+                                  {...field}
+                                />
                               </FormControl>
-                              <SelectContent>
-                                <SelectItem value="male">Male</SelectItem>
-                                <SelectItem value="female">Female</SelectItem>
-                                <SelectItem value="other">Other</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormDescription>
-                            </FormDescription>
-                            <FormMessage />
+                            )}
                           </FormItem>
                         )}
                       />
-                    ) : (
+                    ))}
+                  </div>
+                </div>
+
+                {/* Medical History Section */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
+                    Medical History & Vital Signs
+                  </h3>
+                  <div className="grid grid-cols-3 gap-6">
+                    {fields.slice(3, 6).map((_field) => (
                       <FormField
+                        key={_field.name}
                         control={form.control}
                         name={_field.name as keyof CheckupFormData}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>{_field.label}</FormLabel>
                             <FormControl>
-                              <Input
-                                // onKeyDown={handleEnter(index)}
-                                // ref={(el) => {
-                                //   if (el) autoFocusRef.current[index] = el;
-                                // }}
-                                placeholder={`${_field.placeholder}`}
-                                // type={_field.name === "patient_age" ? "number" : "text"}
-                                type={"text"}
-                                min={_field.name === "patient_age" ? 0 : undefined}
-                                disabled={loading}
-                                className="focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0"
-                                {...field}
-                              />
+                              <div className="relative">
+                                {_field.icon && (
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2">
+                                    {_field.icon}
+                                  </span>
+                                )}
+                                <Input
+                                  placeholder={_field.placeholder}
+                                  className="h-12 pl-10"
+                                  disabled={loading}
+                                  {...field}
+                                />
+                              </div>
                             </FormControl>
-                            <FormDescription>
-                            </FormDescription>
-                            <FormMessage />
                           </FormItem>
                         )}
                       />
-                    )}
+                    ))}
                   </div>
-                ))}
-                <div className="w-full flex flex-col items-end gap-2 justify-center">
+                </div>
+
+                {/* Symptoms and Diagnosis */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
+                    Clinical Assessment
+                  </h3>
+                  {fields.slice(6, 8).map((_field) => (
+                    <FormField
+                      key={_field.name}
+                      control={form.control}
+                      name={_field.name as keyof CheckupFormData}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{_field.label}</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder={_field.placeholder}
+                              className="min-h-[120px]"
+                              disabled={loading}
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  ))}
+                </div>
+
+                {/* Treatment Section */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
+                    Treatment Plan
+                  </h3>
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="col-span-2">
+                      <FormField
+                        control={form.control}
+                        name="medications"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Medication</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Paracetamol 500mg, once daily..."
+                                className="min-h-[120px]"
+                                disabled={loading}
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div>
+                      <FormField
+                        control={form.control}
+                        name="lab_tests"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Lab Tests</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="CBC, BMP, LFT..."
+                                className="min-h-[120px]"
+                                disabled={loading}
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
+                    Additional Notes
+                  </h3>
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Patient is responding well to treatment..."
+                            className="min-h-[120px]"
+                            disabled={loading}
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Submit Section */}
+                <div className="flex flex-col items-end gap-3 pt-6">
                   <Button
                     type="submit"
-                    className="text-base font-semibold cursor-pointer focus-visible:ring-pink-500 h-10 px-8"
+                    className="h-12 px-8 text-lg font-semibold"
                     disabled={loading}
                   >
-                    {loading ? "Submitting" : "Submit Checkup"}
+                    {loading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      "Submit Checkup"
+                    )}
                   </Button>
-                  <span className="text-xs tracking-wide text-muted-foreground">
+                  <span className="text-sm text-muted-foreground">
                     Press 'Ctrl+Enter' to Submit
                   </span>
-                  {/* <Button
-                  type="button"
-                  variant="outline"
-                  className="text-base font-semibold cursor-pointer focus-visible:ring-pink-500 h-12"
-                  onClick={() => router.push("/dashboard")}
-                  disabled={loading}
-                >
-                  Cancel
-                </Button> */}
                 </div>
               </form>
             </FocusTrap>
           </Form>
-          <div className="w-full px-1">
-            <p className="text-[12px] text-muted-foreground mt-2 text-justify select-none">
+
+          {/* Privacy Notice */}
+          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+            <p className="text-xs text-muted-foreground text-justify">
               By submitting this form, you agree to our{" "}
               <a
                 href="/privacy-policy"
@@ -594,14 +801,14 @@ const CheckupFormRHF = () => {
               >
                 Privacy Policy
               </a>
-              . We collect and store your voice recordings and any information provided in
-              this form for research and development purposes aimed at improving healthcare
-              technology. Your data may be used to train and enhance AI models that assist
-              in healthcare insights and diagnostics. All data will be stored securely and
-              will not be shared with unauthorized third parties.
+              . We collect and store your voice recordings and any information
+              provided in this form for research and development purposes aimed
+              at improving healthcare technology. Your data may be used to train
+              and enhance AI models that assist in healthcare insights and
+              diagnostics. All data will be stored securely and will not be
+              shared with unauthorized third parties.
             </p>
           </div>
-
         </CardContent>
       </Card>
     </div>
