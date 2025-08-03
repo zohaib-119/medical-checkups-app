@@ -42,7 +42,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useUpload } from "@/components/providers/UploadContext";
-import { text } from "stream/consumers";
+import printJS from 'print-js';
 
 interface CheckupFormData {
   patient_name: string;
@@ -242,7 +242,47 @@ const CheckupFormRHF = () => {
     );
 
     // --- IMPORTANT CHANGE: Navigate immediately AFTER the toast.promise is initiated ---
-    router.push("/dashboard");
+    // router.push("/dashboard");
+
+    console.log('Checkup data', values);
+
+  // Create a printable HTML string
+  const printableHTML = `
+    <h2>Patient Checkup Report</h2>
+    <p><strong>Name:</strong> ${values.patient_name || "N/A"}</p>
+    <p><strong>Age:</strong> ${values.patient_age || "N/A"}</p>
+    <p><strong>Gender:</strong> ${values.patient_gender || "N/A"}</p>
+    <p><strong>Temperature:</strong> ${values.temperature}</p>
+    <p><strong>Blood Pressure:</strong> ${values.blood_pressure}</p>
+    <p><strong>Blood Sugar:</strong> ${values.blood_sugar}</p>
+    <p><strong>Symptoms:</strong> ${values.symptoms}</p>
+    <p><strong>Diagnosis:</strong> ${values.diagnosis}</p>
+    <p><strong>Medications:</strong> ${values.medications}</p>
+    <p><strong>Lab Tests:</strong> ${values.lab_tests}</p>
+    <p><strong>Notes:</strong> ${values.notes}</p>
+  `;
+
+  // Create an invisible div and inject it to DOM
+  const printContainer = document.createElement('div');
+  printContainer.id = 'printable-checkup';
+  printContainer.innerHTML = printableHTML;
+  document.body.appendChild(printContainer);
+
+  // Trigger print
+  printJS({
+    printable: 'printable-checkup',
+    type: 'html',
+    targetStyles: ['*'], // include CSS
+    onPrintDialogClose: () => {
+      // Navigate after print dialog is closed (works in some browsers)
+      router.push('/dashboard');
+    }
+  });
+
+  // In case onPrintDialogClose doesn't fire (for compatibility), use fallback
+  setTimeout(() => {
+    router.push('/dashboard');
+  }, 1000); // delay for 1 sec to allow print dialog to appear
   }
 
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
