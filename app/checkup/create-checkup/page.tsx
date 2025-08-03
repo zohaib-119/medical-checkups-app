@@ -42,7 +42,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useUpload } from "@/components/providers/UploadContext";
-import printJS from 'print-js';
+import printJS from "print-js";
 
 interface CheckupFormData {
   patient_name: string;
@@ -244,45 +244,123 @@ const CheckupFormRHF = () => {
     // --- IMPORTANT CHANGE: Navigate immediately AFTER the toast.promise is initiated ---
     // router.push("/dashboard");
 
-    console.log('Checkup data', values);
+    console.log("Checkup data", values);
 
-  // Create a printable HTML string
-  const printableHTML = `
-    <h2>Patient Checkup Report</h2>
-    <p><strong>Name:</strong> ${values.patient_name || "N/A"}</p>
-    <p><strong>Age:</strong> ${values.patient_age || "N/A"}</p>
-    <p><strong>Gender:</strong> ${values.patient_gender || "N/A"}</p>
-    <p><strong>Temperature:</strong> ${values.temperature}</p>
-    <p><strong>Blood Pressure:</strong> ${values.blood_pressure}</p>
-    <p><strong>Blood Sugar:</strong> ${values.blood_sugar}</p>
-    <p><strong>Symptoms:</strong> ${values.symptoms}</p>
-    <p><strong>Diagnosis:</strong> ${values.diagnosis}</p>
-    <p><strong>Medications:</strong> ${values.medications}</p>
-    <p><strong>Lab Tests:</strong> ${values.lab_tests}</p>
-    <p><strong>Notes:</strong> ${values.notes}</p>
-  `;
+        const printableHTML = `
+    <div class="font-sans border border-gray-200 rounded-lg p-5 w-full mx-auto bg-white shadow-sm">
+      <div class="text-center mb-5 pb-4 border-b-2 border-blue-500">
+        <h2 class="text-slate-800 m-0 text-2xl font-semibold">Patient Checkup Report</h2>
+        <p class="text-gray-500 mt-1 text-sm">${new Date().toLocaleDateString()}</p>
+      </div>
 
-  // Create an invisible div and inject it to DOM
-  const printContainer = document.createElement('div');
-  printContainer.id = 'printable-checkup';
-  printContainer.innerHTML = printableHTML;
-  document.body.appendChild(printContainer);
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <p class="font-medium text-gray-700">Name:</p>
+          <p class="text-gray-900">${values.patient_name || "N/A"}</p>
+        </div>
+        <div>
+          <p class="font-medium text-gray-700">Age:</p>
+          <p class="text-gray-900">${values.patient_age || "N/A"}</p>
+        </div>
+        <div>
+          <p class="font-medium text-gray-700">Gender:</p>
+          <p class="text-gray-900">${values.patient_gender || "N/A"}</p>
+        </div>
+        <div>
+          <p class="font-medium text-gray-700">Temperature:</p>
+          <p class="text-gray-900">${values.temperature || "N/A"}</p>
+        </div>
+      </div>
 
-  // Trigger print
-  printJS({
-    printable: 'printable-checkup',
-    type: 'html',
-    targetStyles: ['*'], // include CSS
-    onPrintDialogClose: () => {
-      // Navigate after print dialog is closed (works in some browsers)
-      router.push('/dashboard');
+      <div class="mt-6">
+        <h3 class="text-lg font-semibold text-slate-700 border-b pb-2">Clinical Findings</h3>
+        <div class="grid grid-cols-1 gap-4 mt-3">
+          <div>
+            <p class="font-medium text-gray-700">Blood Pressure:</p>
+            <p class="text-gray-900">${values.blood_pressure || "N/A"}</p>
+          </div>
+          <div>
+            <p class="font-medium text-gray-700">Blood Sugar:</p>
+            <p class="text-gray-900">${values.blood_sugar || "N/A"}</p>
+          </div>
+          <div>
+            <p class="font-medium text-gray-700">Symptoms:</p>
+            <p class="text-gray-900 whitespace-pre-line">${
+              values.symptoms || "N/A"
+            }</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <h3 class="text-lg font-semibold text-slate-700 border-b pb-2">Medical Assessment</h3>
+        <div class="grid grid-cols-1 gap-4 mt-3">
+          <div>
+            <p class="font-medium text-gray-700">Diagnosis:</p>
+            <p class="text-gray-900">${values.diagnosis || "N/A"}</p>
+          </div>
+          <div>
+            <p class="font-medium text-gray-700">Medications:</p>
+            <p class="text-gray-900 whitespace-pre-line">${
+              values.medications || "N/A"
+            }</p>
+          </div>
+          <div>
+            <p class="font-medium text-gray-700">Lab Tests:</p>
+            <p class="text-gray-900">${values.lab_tests || "N/A"}</p>
+          </div>
+          <div>
+            <p class="font-medium text-gray-700">Notes:</p>
+            <p class="text-gray-900 whitespace-pre-line">${
+              values.notes || "N/A"
+            }</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-8 pt-4 border-t text-xs text-gray-500 text-center">
+        <p>Generated on ${new Date().toLocaleString()}</p>
+      </div>
+    </div>
+    `;
+
+    // Create an invisible div and inject it to DOM
+
+    const existingPrintEl = document.getElementById("printable-checkup");
+    if (existingPrintEl) {
+      document.body.removeChild(existingPrintEl);
     }
-  });
 
-  // In case onPrintDialogClose doesn't fire (for compatibility), use fallback
-  setTimeout(() => {
-    router.push('/dashboard');
-  }, 1000); // delay for 1 sec to allow print dialog to appear
+    const printContainer = document.createElement("div");
+    printContainer.id = "printable-checkup";
+    printContainer.innerHTML = printableHTML;
+
+    printContainer.style.position = "fixed";
+    printContainer.style.top = "0";
+    printContainer.style.left = "0";
+    printContainer.style.width = "100%";
+    printContainer.style.height = "100%";
+    printContainer.style.zIndex = "-1";
+
+    document.body.appendChild(printContainer);
+
+    // Trigger print
+    setTimeout(() => {
+      printJS({
+        printable: "printable-checkup",
+        type: "html",
+        targetStyles: ["*"],
+        onPrintDialogClose: () => {
+          router.push("/dashboard");
+          printContainer.remove();
+        },
+      });
+    }, 1000);
+
+    setTimeout(() => {
+      router.push("/dashboard");
+      printContainer.remove();
+    }, 1000); // delay for 1 sec to allow print dialog to appear
   }
 
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
@@ -635,27 +713,25 @@ const CheckupFormRHF = () => {
                                 control={form.control}
                                 name={_field.name as keyof CheckupFormData}
                                 render={({ field }) => (
-                                    <Select
-                                      disabled={loading}
-                                      onValueChange={field.onChange}
-                                    >
-                                      <FormControl>
-                                        <SelectTrigger className="w-full focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0">
-                                          <SelectValue placeholder="Select Gender" />
-                                        </SelectTrigger>
-                                      </FormControl>
-                                      <SelectContent>
-                                        <SelectItem value="male">
-                                          Male
-                                        </SelectItem>
-                                        <SelectItem value="female">
-                                          Female
-                                        </SelectItem>
-                                        <SelectItem value="other">
-                                          Other
-                                        </SelectItem>
-                                      </SelectContent>
-                                    </Select>
+                                  <Select
+                                    disabled={loading}
+                                    onValueChange={field.onChange}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger className="w-full focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0">
+                                        <SelectValue placeholder="Select Gender" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="male">Male</SelectItem>
+                                      <SelectItem value="female">
+                                        Female
+                                      </SelectItem>
+                                      <SelectItem value="other">
+                                        Other
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 )}
                               />
                             ) : (
