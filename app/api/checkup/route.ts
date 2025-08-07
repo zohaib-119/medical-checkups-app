@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth/next'; 
-import { authOptions } from '../auth/[...nextauth]/route'; 
+import { authOptions } from '@/config/authOptions'; 
 import dbConnect from '@/lib/dbConnect';
 
 interface CheckupRequestBody {
