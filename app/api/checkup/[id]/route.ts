@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth/next'; 
 import { authOptions } from '@/config/authOptions'; 
 import dbConnect from '@/lib/dbConnect';
+import { request } from 'https';
 
 interface SessionUser {
     id: string;
@@ -8,9 +9,10 @@ interface SessionUser {
     username: string;
 }
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request) {
     try {
-        const {id} = params
+        const url = new URL(req.url);
+        const id = url.pathname.split("/").pop(); // or use regex if nested
         if (!id) {
             return new Response(JSON.stringify({ error: 'Checkup ID is required' }), { status: 400 });
         }
