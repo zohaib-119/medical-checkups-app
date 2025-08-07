@@ -246,7 +246,7 @@ const CheckupFormRHF = () => {
 
     console.log("Checkup data", values);
 
-        const printableHTML = `
+    const printableHTML = `
     <div class="font-sans border border-gray-200 rounded-lg p-5 w-full mx-auto bg-white shadow-sm">
       <div class="text-center mb-5 pb-4 border-b-2 border-blue-500">
         <h2 class="text-slate-800 m-0 text-2xl font-semibold">Patient Checkup Report</h2>
@@ -285,9 +285,8 @@ const CheckupFormRHF = () => {
           </div>
           <div>
             <p class="font-medium text-gray-700">Symptoms:</p>
-            <p class="text-gray-900 whitespace-pre-line">${
-              values.symptoms || "N/A"
-            }</p>
+            <p class="text-gray-900 whitespace-pre-line">${values.symptoms || "N/A"
+      }</p>
           </div>
         </div>
       </div>
@@ -301,9 +300,8 @@ const CheckupFormRHF = () => {
           </div>
           <div>
             <p class="font-medium text-gray-700">Medications:</p>
-            <p class="text-gray-900 whitespace-pre-line">${
-              values.medications || "N/A"
-            }</p>
+            <p class="text-gray-900 whitespace-pre-line">${values.medications || "N/A"
+      }</p>
           </div>
           <div>
             <p class="font-medium text-gray-700">Lab Tests:</p>
@@ -311,9 +309,8 @@ const CheckupFormRHF = () => {
           </div>
           <div>
             <p class="font-medium text-gray-700">Notes:</p>
-            <p class="text-gray-900 whitespace-pre-line">${
-              values.notes || "N/A"
-            }</p>
+            <p class="text-gray-900 whitespace-pre-line">${values.notes || "N/A"
+      }</p>
           </div>
         </div>
       </div>
@@ -355,12 +352,12 @@ const CheckupFormRHF = () => {
           printContainer.remove();
         },
       });
-    }, 1000);
+    }, 10);
 
     setTimeout(() => {
       router.push("/dashboard");
       printContainer.remove();
-    }, 1000); // delay for 1 sec to allow print dialog to appear
+    }, 10); // delay for 1 sec to allow print dialog to appear
   }
 
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
@@ -516,12 +513,12 @@ const CheckupFormRHF = () => {
 
   const handleEnter =
     (index: number) =>
-    (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        autoFocusRef.current[index + 1]?.focus();
-      }
-    };
+      (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          autoFocusRef.current[index + 1]?.focus();
+        }
+      };
 
   // const fields = [
   //   { placeholder: "Ahmad (optional)", label: "Patient Name", name: "patient_name" },
@@ -551,7 +548,7 @@ const CheckupFormRHF = () => {
   const fields = [
     // Patient Information Section
     {
-      placeholder: "Ahmad (optional)",
+      placeholder: "John (optional)",
       label: "Patient Name",
       name: "patient_name",
       colSpan: 1,
@@ -572,7 +569,7 @@ const CheckupFormRHF = () => {
 
     // Medical History Section - Vital Signs
     {
-      placeholder: "36.5°C",
+      placeholder: "98.6 °F",
       label: "Temperature",
       name: "temperature",
       colSpan: 1,
@@ -596,14 +593,14 @@ const CheckupFormRHF = () => {
     // Symptoms and Diagnosis
     {
       placeholder: "Fever, cough, headache...",
-      label: "Symptoms",
+      label: "Symptoms *",
       name: "symptoms",
       textarea: true,
       colSpan: 3,
     },
     {
       placeholder: "Common cold, flu, bronchitis...",
-      label: "Diagnosis",
+      label: "Diagnosis *",
       name: "diagnosis",
       textarea: true,
       colSpan: 3,
@@ -612,7 +609,7 @@ const CheckupFormRHF = () => {
     // Treatment Section
     {
       placeholder: "Paracetamol 500mg, once daily...",
-      label: "Medication",
+      label: "Medication *",
       name: "medications",
       textarea: true,
       colSpan: 2,
@@ -628,7 +625,7 @@ const CheckupFormRHF = () => {
     // Notes
     {
       placeholder: "Patient is responding well to treatment...",
-      label: "Notes",
+      label: "Notes *",
       name: "notes",
       textarea: true,
       colSpan: 3,
@@ -637,8 +634,8 @@ const CheckupFormRHF = () => {
 
   return (
     <div className="p-6">
-      <Card className="max-w-6xl mx-auto shadow-lg border border-gray-200">
-        <CardHeader className="pb-4">
+      <Card className="max-w-7xl mx-auto shadow-lg border border-gray-200">
+        <CardHeader className="">
           <div className="flex w-full items-center justify-between">
             <Button
               type="button"
@@ -657,13 +654,33 @@ const CheckupFormRHF = () => {
                 Patient Checkup Form
               </CardTitle>
             </div>
-            <div className="w-24"> {/* Spacer for balance */} </div>
+
+            <div className="flex items-center gap-4">
+              {recording ? (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 text-red-600 font-medium">
+                    <span className="bg-red-500 w-3 h-3 rounded-full animate-pulse" />
+                    Recording
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    {`${Math.floor(recordingTime / 60)
+                      .toString()
+                      .padStart(2, "0")}:${(recordingTime % 60)
+                        .toString()
+                        .padStart(2, "0")}`}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-sm text-gray-500">Ready to record</span>
+              )}
+            </div>
           </div>
+          {/* <div className="w-24"> Spacer for balance </div> */}
         </CardHeader>
 
-        <CardContent className="space-y-8">
+        <CardContent className="">
           {/* Audio Controls */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          {/* <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <span className="text-sm text-muted-foreground">
               Press 'Tab' to navigate fields
             </span>
@@ -678,15 +695,15 @@ const CheckupFormRHF = () => {
                     {`${Math.floor(recordingTime / 60)
                       .toString()
                       .padStart(2, "0")}:${(recordingTime % 60)
-                      .toString()
-                      .padStart(2, "0")}`}
+                        .toString()
+                        .padStart(2, "0")}`}
                   </span>
                 </div>
               ) : (
                 <span className="text-sm text-gray-500">Ready to record</span>
               )}
             </div>
-          </div>
+          </div> */}
 
           <Form {...form}>
             <FocusTrap active={true}>
@@ -694,237 +711,252 @@ const CheckupFormRHF = () => {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-8"
               >
-                {/* Patient Information Section */}
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
-                    Patient Information
-                  </h3>
-                  <div className="grid grid-cols-3 gap-6">
-                    {fields.slice(0, 3).map((_field) => (
-                      <FormField
-                        key={_field.name}
-                        control={form.control}
-                        name={_field.name as keyof CheckupFormData}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{_field.label}</FormLabel>
-                            {_field.select ? (
-                              <FormField
-                                control={form.control}
-                                name={_field.name as keyof CheckupFormData}
-                                render={({ field }) => (
-                                  <Select
-                                    disabled={loading}
-                                    onValueChange={field.onChange}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger className="w-full focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0">
-                                        <SelectValue placeholder="Select Gender" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="male">Male</SelectItem>
-                                      <SelectItem value="female">
-                                        Female
-                                      </SelectItem>
-                                      <SelectItem value="other">
-                                        Other
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                <div className="grid grid-cols-4 gap-6">
+                  <div className="col-span-3 space-y-8">
+                    {/* Patient Information Section */}
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-semibold text-pink-700 tracking-wider uppercase border-b pb-1">
+                        Patient Information
+                      </h3>
+                      <div className="grid grid-cols-3 gap-6">
+                        {fields.slice(0, 3).map((_field) => (
+                          <FormField
+                            key={_field.name}
+                            control={form.control}
+                            name={_field.name as keyof CheckupFormData}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{_field.label}</FormLabel>
+                                {_field.select ? (
+                                  <FormField
+                                    control={form.control}
+                                    name={_field.name as keyof CheckupFormData}
+                                    render={({ field }) => (
+                                      <Select
+                                        disabled={loading}
+                                        onValueChange={field.onChange}
+                                      >
+                                        <FormControl>
+                                          <SelectTrigger tabIndex={1} className="w-full focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0">
+                                            <SelectValue placeholder="Select Gender" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="male">Male</SelectItem>
+                                          <SelectItem value="female">
+                                            Female
+                                          </SelectItem>
+                                          <SelectItem value="other">
+                                            Other
+                                          </SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    )}
+                                  />
+                                ) : (
+                                  <FormControl>
+                                    <Input
+                                      placeholder={_field.placeholder}
+                                      className="h-9  focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0"
+                                      disabled={loading}
+                                      {...field}
+                                      tabIndex={1}
+                                    />
+                                  </FormControl>
                                 )}
-                              />
-                            ) : (
+                              </FormItem>
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {/* Symptoms and Diagnosis */}
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-semibold text-pink-700 tracking-wider uppercase border-b pb-1">
+                        Clinical Assessment
+                      </h3>
+                      <div className="grid grid-cols-2 gap-6">
+                        {fields.slice(6, 8).map((_field) => (
+                          <FormField
+                            key={_field.name}
+                            control={form.control}
+                            name={_field.name as keyof CheckupFormData}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{_field.label}</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder={_field.placeholder}
+                                    className="min-h-14  focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0"
+                                    disabled={loading}
+                                    tabIndex={3}
+                                    {...field}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  {/* Medical History Section */}
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold text-pink-700 tracking-wider uppercase border-b pb-1">
+                      Medical History & Vital Signs
+                    </h3>
+                    <div className="space-y-4">
+                      {fields.slice(3, 6).map((_field) => (
+                        <FormField
+                          key={_field.name}
+                          control={form.control}
+                          name={_field.name as keyof CheckupFormData}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{_field.label}</FormLabel>
                               <FormControl>
-                                <Input
-                                  placeholder={_field.placeholder}
-                                  className="h-12"
+                                <div className="relative">
+                                  {_field.icon && (
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2">
+                                      {_field.icon}
+                                    </span>
+                                  )}
+                                  <Input
+                                    placeholder={_field.placeholder}
+                                    className="h-9 pl-10  focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0"
+                                    disabled={loading}
+                                    tabIndex={2}
+                                    {...field}
+                                  />
+                                </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-6">
+                  {/* Treatment Section */}
+                  <div className="space-y-2 col-span-2">
+                    <h3 className="text-sm font-semibold text-pink-700 tracking-wider uppercase border-b pb-1">
+                      Treatment Plan
+                    </h3>
+                    <div className="grid grid-cols-3 gap-6">
+                      <div className="col-span-2">
+                        <FormField
+                          control={form.control}
+                          name="medications"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Medication *</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Paracetamol 500mg, once daily..."
+                                  className="min-h-14  focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0"
                                   disabled={loading}
                                   {...field}
                                 />
                               </FormControl>
-                            )}
-                          </FormItem>
-                        )}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Medical History Section */}
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
-                    Medical History & Vital Signs
-                  </h3>
-                  <div className="grid grid-cols-3 gap-6">
-                    {fields.slice(3, 6).map((_field) => (
-                      <FormField
-                        key={_field.name}
-                        control={form.control}
-                        name={_field.name as keyof CheckupFormData}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{_field.label}</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                {_field.icon && (
-                                  <span className="absolute left-3 top-1/2 -translate-y-1/2">
-                                    {_field.icon}
-                                  </span>
-                                )}
-                                <Input
-                                  placeholder={_field.placeholder}
-                                  className="h-12 pl-10"
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <FormField
+                          control={form.control}
+                          name="lab_tests"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Lab Tests</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="CBC, BMP, LFT..."
+                                  className="min-h-14  focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0"
                                   disabled={loading}
                                   {...field}
                                 />
-                              </div>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2 col-span-2">
+                      <h3 className="text-sm font-semibold text-pink-700 tracking-wider uppercase border-b pb-1">
+                        Additional Notes
+                      </h3>
+                      <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Notes *</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Patient is responding well to treatment..."
+                                className="min-h-14  focus-visible:ring-blue-500 focus-visible:ring-1 focus-visible:border-0"
+                                disabled={loading}
+                                {...field}
+                              />
                             </FormControl>
                           </FormItem>
                         )}
                       />
-                    ))}
+                    </div>
+
                   </div>
                 </div>
-
-                {/* Symptoms and Diagnosis */}
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
-                    Clinical Assessment
-                  </h3>
-                  {fields.slice(6, 8).map((_field) => (
-                    <FormField
-                      key={_field.name}
-                      control={form.control}
-                      name={_field.name as keyof CheckupFormData}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{_field.label}</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder={_field.placeholder}
-                              className="min-h-[120px]"
-                              disabled={loading}
-                              {...field}
-                            />
-                          </FormControl>
-                        </FormItem>
+                <div className="flex w-full gap-6">
+                  {/* Privacy Notice */}
+                  <div className="p-4 bg-gray-50 rounded-lg w-full">
+                    <p className="text-xs text-muted-foreground text-justify">
+                      By submitting this form, you agree to our{" "}
+                      <a
+                        href="/privacy-policy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline text-primary hover:text-primary/80 cursor-pointer"
+                        tabIndex={-1}
+                      >
+                        Privacy Policy
+                      </a>
+                      . We collect and store your voice recordings and any information
+                      provided in this form for research and development purposes aimed
+                      at improving healthcare technology. Your data may be used to train
+                      and enhance AI models that assist in healthcare insights and
+                      diagnostics. All data will be stored securely and will not be
+                      shared with unauthorized third parties.
+                    </p>
+                  </div>
+                  {/* Submit Section */}
+                  <div className="flex flex-col items-end justify-end gap-3">
+                    <Button
+                      type="submit"
+                      className="h-10 px-8 text-md cursor-pointer font-semibold focus-visible:ring-pink-500 focus-visible:ring-4 focus-visible:border-0"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        "Submit Checkup"
                       )}
-                    />
-                  ))}
-                </div>
-
-                {/* Treatment Section */}
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
-                    Treatment Plan
-                  </h3>
-                  <div className="grid grid-cols-3 gap-6">
-                    <div className="col-span-2">
-                      <FormField
-                        control={form.control}
-                        name="medications"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Medication</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Paracetamol 500mg, once daily..."
-                                className="min-h-[120px]"
-                                disabled={loading}
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div>
-                      <FormField
-                        control={form.control}
-                        name="lab_tests"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Lab Tests</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="CBC, BMP, LFT..."
-                                className="min-h-[120px]"
-                                disabled={loading}
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                    </Button>
+                    <span className="text-xs text-muted-foreground">
+                      Press 'Ctrl+Enter' to Submit
+                    </span>
                   </div>
-                </div>
 
-                {/* Notes */}
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
-                    Additional Notes
-                  </h3>
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Patient is responding well to treatment..."
-                            className="min-h-[120px]"
-                            disabled={loading}
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Submit Section */}
-                <div className="flex flex-col items-end gap-3 pt-6">
-                  <Button
-                    type="submit"
-                    className="h-12 px-8 text-lg font-semibold"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      "Submit Checkup"
-                    )}
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Press 'Ctrl+Enter' to Submit
-                  </span>
                 </div>
               </form>
             </FocusTrap>
           </Form>
-
-          {/* Privacy Notice */}
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-muted-foreground text-justify">
-              By submitting this form, you agree to our{" "}
-              <a
-                href="/privacy-policy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline text-primary hover:text-primary/80 cursor-pointer"
-              >
-                Privacy Policy
-              </a>
-              . We collect and store your voice recordings and any information
-              provided in this form for research and development purposes aimed
-              at improving healthcare technology. Your data may be used to train
-              and enhance AI models that assist in healthcare insights and
-              diagnostics. All data will be stored securely and will not be
-              shared with unauthorized third parties.
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>

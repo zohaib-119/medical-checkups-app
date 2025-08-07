@@ -23,7 +23,7 @@ export default function RootLayout({
           <UploadProvider>
         <main>
           <Header />
-          <div className="min-h-[80vh] bg-gray-50">
+          <div className="h-[80vh] bg-gray-50">
             {children}
             <Toaster richColors />
           </div>

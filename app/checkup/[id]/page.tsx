@@ -107,9 +107,9 @@ const Checkup = () => {
           <div className="space-y-1">
             <h3 className="font-semibold text-lg text-black">Medical History</h3>
             <p>
-              {checkup.temperature && <><strong>Temperature:</strong> {checkup.temperature}°C<br /></>}
+              {checkup.temperature && <><strong>Temperature:</strong> {checkup.temperature}<br /></>}
               {checkup.blood_pressure && <><strong>Blood Pressure:</strong> {checkup.blood_pressure}<br /></>}
-              {checkup.blood_sugar && <><strong>Blood Sugar:</strong> {checkup.blood_sugar} mg/dL</>}
+              {checkup.blood_sugar && <><strong>Blood Sugar:</strong> {checkup.blood_sugar}</>}
             </p>
           </div>
 

@@ -26,7 +26,7 @@ const Header = () => {
   return (
     <header className="w-full px-6 py-4 border-b bg-white flex justify-between items-center">
       <h1 className="text-xl font-semibold tracking-tight text-gray-800">
-        <Link href="/dashboard" className="flex items-center">
+        <Link href="/" className="flex items-center">
         MedCheckup
         </Link>
       </h1>
