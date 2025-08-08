@@ -6,16 +6,17 @@ interface CheckupRequestBody {
     patient_name: string;
     patient_age: number;
     patient_gender: string;
-    temperature?: number;
-    blood_pressure?: string;
-    blood_sugar?: number;
+    temperature: string;
+    blood_pressure: string;
+    blood_sugar: string;
+    body_weight: string;
     symptoms: string;
     diagnosis: string;
-    medications?: string;
-    lab_tests?: string;
-    notes?: string;
-    consultation_audio_url?: string;
-    audio_public_id?: string;
+    medications: string;
+    lab_tests: string;
+    notes: string;
+    consultation_audio_url: string;
+    audio_public_id: string;
 }
 
 interface SessionUser {
@@ -35,6 +36,7 @@ export async function POST(req: Request) {
             temperature,
             blood_pressure,
             blood_sugar,
+            body_weight,
             symptoms,
             diagnosis,
             medications,
@@ -47,7 +49,7 @@ export async function POST(req: Request) {
         if (
             !symptoms ||
             !diagnosis ||
-            (!medications && !lab_tests && !notes && !consultation_audio_url && !audio_public_id)
+            !notes || !consultation_audio_url || !audio_public_id
         ) {
             return new Response(JSON.stringify({ error: 'Missing Fields in request body' }), { status: 400 });
         }
@@ -68,6 +70,7 @@ export async function POST(req: Request) {
             temperature,
             blood_pressure,
             blood_sugar,
+            body_weight,
             symptoms,
             diagnosis,
             medications,
@@ -106,12 +109,13 @@ export async function GET(req: Request) {
 
         const user = session.user as SessionUser;
 
+        // .select('id, patient_name, patient_age, patient_gender, temperature, blood_pressure, blood_sugar, body_weight, symptoms, diagnosis, medications, lab_tests, notes, doctor_id, created_at')
         const { data: checkups, error } = await client
             .from('med_consultations')
-            .select('id, patient_name, patient_age, patient_gender, temperature, blood_pressure, blood_sugar, symptoms, diagnosis, medications, lab_tests, notes, doctor_id, created_at')
+            .select('id, patient_name, patient_age, patient_gender, symptoms, diagnosis, notes, doctor_id, created_at')
             .eq('doctor_id', user.id)
             .order('created_at', { ascending: false }) // fetch in inverse chronological order (most recent first)
-            .limit(10); // limit to 20 checkups
+            .limit(20); // limit to 20 checkups
 
         if (error) {
             console.error(error);
