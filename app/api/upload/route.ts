@@ -62,12 +62,6 @@ export async function POST(req: NextRequest) {
             }
           );
 
-          // const uploadDir = path.join(process.cwd(), 'public', 'upload');
-          // if (!fs.existsSync(uploadDir)) {
-          //   fs.mkdirSync(uploadDir, { recursive: true });
-          // }
-
-          // const tempPath = path.join(uploadDir, `temp-${index}-${file.name}`);
 
           // Stream the file data to Cloudinary
           const fileBuffer = Buffer.from(await file.arrayBuffer()); // await is now valid

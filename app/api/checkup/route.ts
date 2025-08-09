@@ -49,7 +49,7 @@ export async function POST(req: Request) {
         if (
             !symptoms ||
             !diagnosis ||
-            !notes || !consultation_audio_url || !audio_public_id
+            !notes
         ) {
             return new Response(JSON.stringify({ error: 'Missing Fields in request body' }), { status: 400 });
         }
