@@ -21,29 +21,61 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // const uploadResults = await Promise.all(
+    //   files.map(async (file, index) => {
+    //     const fileBuffer = Buffer.from(await file.arrayBuffer());
+
+    //     const uploadDir = path.join(process.cwd(), 'public', 'upload');
+    //     if (!fs.existsSync(uploadDir)) {
+    //       fs.mkdirSync(uploadDir, { recursive: true });
+    //     }
+
+    //     const tempPath = path.join(uploadDir, `temp-${index}-${file.name}`);
+
+    //     await fs.promises.writeFile(tempPath, fileBuffer);
+
+    //     const result = await cloudinary.uploader.upload(tempPath, {
+    //       resource_type: 'auto',
+    //     });
+
+    //     await fs.promises.unlink(tempPath);
+
+    //     return {
+    //       url: result.secure_url,
+    //       public_id: result.public_id,
+    //     };
+    //   })
+    // );
+
+    // Process files using upload_stream
     const uploadResults = await Promise.all(
-      files.map(async (file, index) => {
-        const fileBuffer = Buffer.from(await file.arrayBuffer());
+      files.map(async (file, index) => { // Add async here
+        return new Promise(async (resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            { resource_type: 'auto' },
+            (error, result) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            }
+          );
 
-        const uploadDir = path.join(process.cwd(), 'public', 'upload');
-        if (!fs.existsSync(uploadDir)) {
-          fs.mkdirSync(uploadDir, { recursive: true });
-        }
+          // const uploadDir = path.join(process.cwd(), 'public', 'upload');
+          // if (!fs.existsSync(uploadDir)) {
+          //   fs.mkdirSync(uploadDir, { recursive: true });
+          // }
 
-        const tempPath = path.join(uploadDir, `temp-${index}-${file.name}`);
+          // const tempPath = path.join(uploadDir, `temp-${index}-${file.name}`);
 
-        await fs.promises.writeFile(tempPath, fileBuffer);
-
-        const result = await cloudinary.uploader.upload(tempPath, {
-          resource_type: 'auto',
+          // Stream the file data to Cloudinary
+          const fileBuffer = Buffer.from(await file.arrayBuffer()); // await is now valid
+          const stream = require('stream');
+          const bufferStream = new stream.PassThrough();
+          bufferStream.end(fileBuffer);
+          bufferStream.pipe(uploadStream);
         });
-
-        await fs.promises.unlink(tempPath);
-
-        return {
-          url: result.secure_url,
-          public_id: result.public_id,
-        };
       })
     );
 

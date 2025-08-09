@@ -606,9 +606,9 @@ const CheckupFormRHF = () => {
                   </span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 bg-green-500/20 px-4 py-2 rounded-full">
-                  <Mic className="h-4 w-4 text-green-800" />
-                  <span className="text-sm text-green-800 font-medium">Ready to record</span>
+                <div className="flex items-center gap-2 bg-gray-500/20 px-4 py-2 rounded-full">
+                  <Mic className="h-4 w-4 text-gray-800" />
+                  <span className="text-sm text-gray-800 font-medium">Not Recording</span>
                 </div>
               )}
             </div>
