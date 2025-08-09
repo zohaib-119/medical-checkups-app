@@ -266,7 +266,8 @@ const CheckupFormRHF = () => {
     router.push("/dashboard");
   }
 
-  const autoPrint = (localStorage.getItem("auto-print-checkups-app") === "true")
+  const [autoPrint, setAutoPrint] = useState(false);
+
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
     null
   );
@@ -309,6 +310,13 @@ const CheckupFormRHF = () => {
     },
     { enableOnFormTags: ["INPUT", "TEXTAREA"], preventDefault: true }
   );
+
+  useEffect(() => {
+    const storedAutoPrint = localStorage.getItem("auto-print-checkups-app");
+    if (storedAutoPrint) {
+      setAutoPrint(storedAutoPrint === "true");
+    }
+  }, []);
 
   useEffect(() => {
     if (status === "unauthenticated") {

@@ -45,12 +45,14 @@ interface Consultation {
 const Dashboard = () => {
   const [checkups, setCheckups] = useState<Consultation[] | null>(null);
   const [reload, setReload] = useState(0)
-  const [autoPrint, setAutoPrint] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("auto-print-checkups-app") === "true";
+  const [autoPrint, setAutoPrint] = useState(false);
+
+  useEffect(() => {
+    const storedAutoPrint = localStorage.getItem("auto-print-checkups-app");
+    if (storedAutoPrint) {
+      setAutoPrint(storedAutoPrint === "true");
     }
-    return false;
-  });
+  }, []);
 
 
   const { status } = useSession();
