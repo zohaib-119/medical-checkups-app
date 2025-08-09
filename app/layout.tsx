@@ -21,15 +21,14 @@ export default function RootLayout({
       <body>
         <Providers>
           <UploadProvider>
-        <main>
-          <Header />
-          <div className="h-[80vh] bg-gray-50">
-            {children}
-            <Toaster richColors />
-          </div>
-          {/* <Footer /> */}
-        </main>
-        </UploadProvider>
+            <main>
+              <div className="h-dvh bg-gray-50">
+                {children}
+                <Toaster richColors />
+              </div>
+              {/* <Footer /> */}
+            </main>
+          </UploadProvider>
         </Providers>
       </body>
     </html>

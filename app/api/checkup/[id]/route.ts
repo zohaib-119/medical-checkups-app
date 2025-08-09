@@ -37,6 +37,7 @@ export async function GET(req: Request) {
             temperature,
             blood_pressure,
             blood_sugar,
+            body_weight,
             symptoms,
             diagnosis,
             medications,
